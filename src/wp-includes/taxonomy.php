@@ -2464,11 +2464,11 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 		return new WP_Error( 'invalid_term_name', __( 'Invalid term name.' ) );
 	}
 
-	$slug_provided = ! empty( $args['slug'] );
-	if ( ! $slug_provided ) {
+	$slug = $args['slug'];
+
+	// If no slug was provided, create one from the term name.
+	if ( empty( $args['slug'] ) ) {
 		$slug = sanitize_title( $name );
-	} else {
-		$slug = $args['slug'];
 	}
 
 	$term_group = 0;
@@ -2524,7 +2524,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 
 	if ( $name_match ) {
 		$slug_match = get_term_by( 'slug', $slug, $taxonomy );
-		if ( ! $slug_provided || $name_match->slug === $slug || $slug_match ) {
+		if ( $name_match->slug === $slug || $slug_match ) {
 			if ( is_taxonomy_hierarchical( $taxonomy ) ) {
 				$siblings = get_terms(
 					array(
@@ -2539,7 +2539,7 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 				$sibling_names = wp_list_pluck( $siblings, 'name' );
 				$sibling_slugs = wp_list_pluck( $siblings, 'slug' );
 
-				if ( ( ! $slug_provided || $name_match->slug === $slug ) && in_array( $name, $sibling_names, true ) ) {
+				if ( ( $name_match->slug === $slug ) && in_array( $name, $sibling_names, true ) ) {
 					$existing_term = $name_match;
 				} elseif ( $slug_match && in_array( $slug, $sibling_slugs, true ) ) {
 					$existing_term = $slug_match;
