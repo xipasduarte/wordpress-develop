@@ -2523,34 +2523,23 @@ function wp_insert_term( $term, $taxonomy, $args = array() ) {
 	}
 
 	if ( $name_match ) {
-		$slug_match = get_term_by( 'slug', $slug, $taxonomy );
-		if ( ! $slug_provided || $name_match->slug === $slug || $slug_match ) {
-			if ( is_taxonomy_hierarchical( $taxonomy ) ) {
-				$siblings = get_terms(
-					array(
-						'taxonomy'               => $taxonomy,
-						'get'                    => 'all',
-						'parent'                 => $parent,
-						'update_term_meta_cache' => false,
-					)
-				);
+		if ( is_taxonomy_hierarchical( $taxonomy ) ) {
+			$siblings = get_terms(
+				array(
+					'taxonomy'               => $taxonomy,
+					'get'                    => 'all',
+					'parent'                 => $parent,
+					'update_term_meta_cache' => false,
+				)
+			);
 
-				$existing_term = null;
-				$sibling_names = wp_list_pluck( $siblings, 'name' );
-				$sibling_slugs = wp_list_pluck( $siblings, 'slug' );
+			$sibling_names = wp_list_pluck( $siblings, 'name' );
 
-				if ( ( ! $slug_provided || $name_match->slug === $slug ) && in_array( $name, $sibling_names, true ) ) {
-					$existing_term = $name_match;
-				} elseif ( $slug_match && in_array( $slug, $sibling_slugs, true ) ) {
-					$existing_term = $slug_match;
-				}
-
-				if ( $existing_term ) {
-					return new WP_Error( 'term_exists', __( 'A term with the name provided already exists with this parent.' ), $existing_term->term_id );
-				}
-			} else {
-				return new WP_Error( 'term_exists', __( 'A term with the name provided already exists in this taxonomy.' ), $name_match->term_id );
+			if ( in_array( $name, $sibling_names, true ) ) {
+				return new WP_Error( 'term_exists', __( 'A term with the name provided already exists with this parent.' ), $existing_term->term_id );
 			}
+		} else {
+			return new WP_Error( 'term_exists', __( 'A term with the name provided already exists in this taxonomy.' ), $name_match->term_id );
 		}
 	}
 
